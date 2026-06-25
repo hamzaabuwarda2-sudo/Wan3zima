@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تشفير وفك تشفير متطور</title>
+<title>تشفير وفك تشفير متكامل</title>
 <style>
     :root {
         --bg-color: #121214;
@@ -39,7 +39,6 @@
         margin-bottom: 25px;
         font-size: 28px;
         font-weight: 600;
-        letter-spacing: -0.5px;
         color: #fff;
     }
 
@@ -97,16 +96,6 @@
         background: var(--accent-hover);
     }
 
-    .btn-secondary {
-        background: #2e2e33;
-        color: var(--text-color);
-        border: 1px solid #3e3e45;
-    }
-
-    .btn-secondary:hover {
-        background: #3e3e45;
-    }
-
     .btn-success {
         background: #10b981;
         color: white;
@@ -122,7 +111,7 @@
 <body>
 
 <div class="container">
-    <h2>أداة التشفير وفك التشفير</h2>
+    <h2>أداة التشفير وفك التشفير المتكاملة</h2>
 
     <textarea id="input" placeholder="اكتب أو الصق النص هنا..."></textarea>
 
@@ -137,20 +126,26 @@
 </div>
 
 <script>
-// الحروف المشتركة التبادلية
+// خريطة الحروف التبادلية الكاملة بناءً على طلبك
 const baseMap = {
-    'ا':'و', 'و':'ا',
-    'ب':'م', 'م':'م',
-    'ت':'ث', 'ث':'ت',
-    'د':'ذ', 'ذ':'د',
-    'ر':'ز', 'ز':'ر',
-    'س':'ش', 'ش':'س',
-    'ص':'ض', 'ض':'ص',
-    'ط':'ظ', 'ظ':'ط',
-    'ع':'غ', 'غ':'ع',
-    'ف':'ق', 'ق':'ف',
-    'ك':'ڤ', 'ڤ':'ك',
-    'ل':'ن', 'ن':'ل'
+    'ا': 'و', 'و': 'ا',
+    'ب': 'م', 'م': 'ب',
+    'ت': 'ث', 'ث': 'ت',
+    'د': 'ذ', 'ذ': 'د',
+    'ر': 'ز', 'ز': 'ر',
+    'س': 'ش', 'ش': 'س',
+    'ص': 'ض', 'ض': 'ص',
+    'ط': 'ظ', 'ظ': 'ط',
+    'ع': 'غ', 'غ': 'ع',
+    'ف': 'ق', 'ق': 'ف',
+    'ك': 'ڤ', 'ڤ': 'ك',
+    'ل': 'ن', 'ن': 'ل',
+    
+    // الحروف التي تظل كما هي (تمت إضافتها صراحةً لتوثيق الكود)
+    'ه': 'ه',
+    'ي': 'ي',
+    'ء': 'ء',
+    'ة': 'ة'
 };
 
 // خريطة التشفير الخاصة بحروف (ج، ح، خ)
@@ -169,7 +164,6 @@ const decryptSpecial = {
 
 function convert(text, isEncrypt) {
     let result = "";
-    // اختيار الخريطة الخاصة بناءً على العملية
     const specialMap = isEncrypt ? encryptSpecial : decryptSpecial;
 
     for (let c of text) {
@@ -178,7 +172,7 @@ function convert(text, isEncrypt) {
         } else if (baseMap[c] !== undefined) {
             result += baseMap[c];
         } else {
-            result += c; // الحروف الأخرى والمسافات تبقى كما هي
+            result += c; // أي رمز أو مسافة أو حرف آخر لم يذكر يبقى كما هو
         }
     }
     return result;
@@ -194,9 +188,9 @@ function copyText() {
     if (!out.value) return;
     
     out.select();
-    out.setSelectionRange(0, 99999); // للهواتف المحمولة
+    out.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(out.value).then(() => {
-        alert("تم نسخ النص بنجاح!");
+        alert("تم نسخ الناتج بنجاح!");
     });
 }
 </script>
