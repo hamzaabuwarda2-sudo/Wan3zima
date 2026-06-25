@@ -2,109 +2,203 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>تشفير وفك تشفير</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تشفير وفك تشفير متطور</title>
 <style>
-body{
-    font-family: Arial;
-    background:#1e1e1e;
-    color:white;
-    text-align:center;
-    padding:20px;
-}
-textarea{
-    width:90%;
-    height:150px;
-    font-size:18px;
-    margin:10px;
-    padding:10px;
-}
-button{
-    padding:10px 20px;
-    margin:5px;
-    font-size:18px;
-    cursor:pointer;
-}
+    :root {
+        --bg-color: #121214;
+        --card-bg: #1a1a1e;
+        --accent-color: #6366f1;
+        --accent-hover: #4f46e5;
+        --text-color: #f3f4f6;
+        --text-muted: #9ca3af;
+        --border-color: #2e2e33;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg-color);
+        color: var(--text-color);
+        text-align: center;
+        padding: 40px 20px;
+        margin: 0;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        border: 1px solid var(--border-color);
+    }
+
+    h2 {
+        margin-top: 0;
+        margin-bottom: 25px;
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+        color: #fff;
+    }
+
+    textarea {
+        width: 100%;
+        height: 130px;
+        font-size: 16px;
+        margin: 10px 0;
+        padding: 15px;
+        background: #222227;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        color: white;
+        resize: vertical;
+        box-sizing: border-box;
+        transition: border-color 0.3s ease;
+    }
+
+    textarea:focus {
+        outline: none;
+        border-color: var(--accent-color);
+    }
+
+    textarea[readonly] {
+        background: #17171a;
+        color: var(--text-muted);
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 10px;
+        margin: 15px 0;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    button {
+        flex: 1;
+        min-width: 120px;
+        padding: 12px 20px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: var(--accent-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+        background: #2e2e33;
+        color: var(--text-color);
+        border: 1px solid #3e3e45;
+    }
+
+    .btn-secondary:hover {
+        background: #3e3e45;
+    }
+
+    .btn-success {
+        background: #10b981;
+        color: white;
+        width: 100%;
+        margin-top: 5px;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+    }
 </style>
 </head>
 <body>
 
-<h2>التشفير / فك التشفير</h2>
+<div class="container">
+    <h2>أداة التشفير وفك التشفير</h2>
 
-<textarea id="input" placeholder="اكتب النص هنا"></textarea><br>
+    <textarea id="input" placeholder="اكتب أو الصق النص هنا..."></textarea>
 
-<button onclick="encrypt()">تشفير</button>
-<button onclick="decrypt()">فك التشفير</button>
-<button onclick="copyText()">نسخ الناتج</button>
+    <div class="btn-group">
+        <button class="btn-primary" onclick="process(true)">تشفير 🔒</button>
+        <button class="btn-primary" onclick="process(false)">فك التشفير 🔓</button>
+    </div>
 
-<textarea id="output" readonly placeholder="الناتج"></textarea>
+    <textarea id="output" readonly placeholder="الناتج سيظهر هنا..."></textarea>
+    
+    <button class="btn-success" onclick="copyText()">نسخ الناتج 📋</button>
+</div>
 
 <script>
-
-const map = {
-'ا':'و',
-'و':'ا',
-
-'ب':'م',
-'م':'ب',
-
-'ت':'ث',
-'ث':'ت',
-
-'ج':'خ',
-'خ':'ج',
-
-'د':'ذ',
-'ذ':'د',
-
-'ر':'ز',
-'ز':'ر',
-
-'س':'ش',
-'ش':'س',
-
-'ص':'ض',
-'ض':'ص',
-
-'ط':'ظ',
-'ظ':'ط',
-
-'ع':'غ',
-'غ':'ع',
-
-'ف':'ق',
-'ق':'ف',
-
-'ك':'ڤ',
-'ڤ':'ك',
-
-'ل':'ن',
-'ن':'ل'
+// الحروف المشتركة التبادلية
+const baseMap = {
+    'ا':'و', 'و':'ا',
+    'ب':'م', 'م':'م',
+    'ت':'ث', 'ث':'ت',
+    'د':'ذ', 'ذ':'د',
+    'ر':'ز', 'ز':'ر',
+    'س':'ش', 'ش':'س',
+    'ص':'ض', 'ض':'ص',
+    'ط':'ظ', 'ظ':'ط',
+    'ع':'غ', 'غ':'ع',
+    'ف':'ق', 'ق':'ف',
+    'ك':'ڤ', 'ڤ':'ك',
+    'ل':'ن', 'ن':'ل'
 };
 
-function convert(text){
-    let result="";
-    for(let c of text){
-        result += map[c] || c;
+// خريطة التشفير الخاصة بحروف (ج، ح، خ)
+const encryptSpecial = {
+    'ح': 'خ',
+    'ج': 'ح',
+    'خ': 'ج'
+};
+
+// خريطة فك التشفير الخاصة بحروف (ج، ح، خ)
+const decryptSpecial = {
+    'ح': 'ج',
+    'ج': 'خ',
+    'خ': 'ح'
+};
+
+function convert(text, isEncrypt) {
+    let result = "";
+    // اختيار الخريطة الخاصة بناءً على العملية
+    const specialMap = isEncrypt ? encryptSpecial : decryptSpecial;
+
+    for (let c of text) {
+        if (specialMap[c] !== undefined) {
+            result += specialMap[c];
+        } else if (baseMap[c] !== undefined) {
+            result += baseMap[c];
+        } else {
+            result += c; // الحروف الأخرى والمسافات تبقى كما هي
+        }
     }
     return result;
 }
 
-function encrypt(){
-    document.getElementById("output").value =
-        convert(document.getElementById("input").value);
+function process(isEncrypt) {
+    const inputVal = document.getElementById("input").value;
+    document.getElementById("output").value = convert(inputVal, isEncrypt);
 }
 
-function decrypt(){
-    document.getElementById("output").value =
-        convert(document.getElementById("input").value);
-}
-
-function copyText(){
-    const out=document.getElementById("output");
+function copyText() {
+    const out = document.getElementById("output");
+    if (!out.value) return;
+    
     out.select();
-    document.execCommand("copy");
+    out.setSelectionRange(0, 99999); // للهواتف المحمولة
+    navigator.clipboard.writeText(out.value).then(() => {
+        alert("تم نسخ النص بنجاح!");
+    });
 }
-
 </script>
 
 </body>
