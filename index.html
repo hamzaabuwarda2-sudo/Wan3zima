@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تشفير وفك تشفير متكامل</title>
+<title>نظام تشفير آمن</title>
 <style>
     :root {
         --bg-color: #121214;
@@ -13,6 +13,7 @@
         --text-color: #f3f4f6;
         --text-muted: #9ca3af;
         --border-color: #2e2e33;
+        --danger-color: #ef4444;
     }
 
     body {
@@ -37,9 +38,53 @@
     h2 {
         margin-top: 0;
         margin-bottom: 25px;
-        font-size: 28px;
+        font-size: 26px;
         font-weight: 600;
         color: #fff;
+    }
+
+    /* شاشة القفل */
+    #lock-screen {
+        display: block;
+    }
+
+    /* الأداة الرئيسية (مخفية في البداية) */
+    #main-tool {
+        display: none;
+    }
+
+    .quiz-box {
+        background: #222227;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px dashed var(--accent-color);
+    }
+
+    .random-word {
+        font-size: 28px;
+        font-weight: bold;
+        letter-spacing: 4px;
+        color: #10b981;
+        margin: 10px 0;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 12px;
+        font-size: 18px;
+        background: #17171a;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: white;
+        text-align: center;
+        box-sizing: border-box;
+        margin-bottom: 15px;
+    }
+
+    input[type="text"]:focus {
+        outline: none;
+        border-color: var(--accent-color);
     }
 
     textarea {
@@ -106,11 +151,32 @@
     .btn-success:hover {
         background: #059669;
     }
+
+    #error-msg {
+        color: var(--danger-color);
+        margin-top: 10px;
+        font-weight: bold;
+        display: none;
+    }
 </style>
 </head>
 <body>
 
-<div class="container">
+<div id="lock-screen" class="container">
+    <h2>🔒 اختبار التحقق الأمني</h2>
+    <p style="color: var(--text-muted);">للوصول للأداة، يرجى تشفير الكلمة العشوائية التالية لإثبات هويتك:</p>
+    
+    <div class="quiz-box">
+        <div style="font-size: 14px; color: var(--text-muted);">قم بتشفير هذه الكلمة:</div>
+        <div id="target-word" class="random-word">------</div>
+    </div>
+
+    <input type="text" id="auth-input" placeholder="أدخل التشفير الصحيح هنا" autocomplete="off">
+    <button class="btn-primary" style="width: 100%;" onclick="verifyAuth()">دخول 🔓</button>
+    <div id="error-msg">الترميز خاطئ! حاول مجدداً بكلمة أخرى.</div>
+</div>
+
+<div id="main-tool" class="container">
     <h2>أداة التشفير وفك التشفير المتكاملة</h2>
 
     <textarea id="input" placeholder="اكتب أو الصق النص هنا..."></textarea>
@@ -126,38 +192,19 @@
 </div>
 
 <script>
+// الخرائط الثابتة والمصححة بالكامل
 const baseMap = {
-    'ا': 'و', 'و': 'ا',
-    'ب': 'م', 'م': 'ب',
-    'ت': 'ث', 'ث': 'ت',
-    'د': 'ذ', 'ذ': 'د',
-    'ر': 'ز', 'ز': 'ر',
-    'س': 'ش', 'ش': 'س',
-    'ص': 'ض', 'ض': 'ص',
-    'ط': 'ظ', 'ظ': 'ط',
-    'ع': 'غ', 'غ': 'ع',
-    'ف': 'ق', 'ق': 'ف',
-    'ك': 'ڤ', 'ڤ': 'ك',
-    'ل': 'ن', 'ن': 'ل',
-    
-    'ه': 'ه',
-    'ي': 'ي',
-    'ء': 'ء',
-    'ة': 'ة'
+    'ا': 'و', 'و': 'ا', 'ب': 'م', 'م': 'ب', 'ت': 'ث', 'ث': 'ت',
+    'د': 'ذ', 'ذ': 'د', 'ر': 'ز', 'ز': 'ر', 'س': 'ش', 'ش': 'س',
+    'ص': 'ض', 'ض': 'ص', 'ط': 'ظ', 'ظ': 'ط', 'ع': 'غ', 'غ': 'ع',
+    'ف': 'ق', 'ق': 'ف', 'ك': 'ڤ', 'ڤ': 'ك', 'ل': 'ن', 'ن': 'ل',
+    'ه': 'ه', 'ي': 'ي', 'ء': 'ء', 'ة': 'ة'
 };
 
-const encryptSpecial = {
-    'ح': 'خ',
-    'ج': 'ح',
-    'خ': 'ج'
-};
+const encryptSpecial = { 'ح': 'خ', 'ج': 'ح', 'خ': 'ج' };
+const decryptSpecial = { 'ح': 'ج', 'ج': 'خ', 'خ': 'ح' };
 
-const decryptSpecial = {
-    'ح': 'ج',
-    'ج': 'خ',
-    'خ': 'ح'
-};
-
+// دالة التشفير وفك التشفير الأساسية
 function convert(text, isEncrypt) {
     let result = "";
     const specialMap = isEncrypt ? encryptSpecial : decryptSpecial;
@@ -174,6 +221,58 @@ function convert(text, isEncrypt) {
     return result;
 }
 
+// منطق نظام الأمان العشوائي
+let currentSecretWord = "";
+let correctTranslation = "";
+
+function generateSecureQuiz() {
+    // قائمة الحروف المتاحة للتوليد العشوائي (باستثناء الحروف التي تبقى ثابتة لزيادة التحدي)
+    const letters = "ابتحخدرزسشصضطظعفقكلون";
+    let randomWord = "";
+    
+    // تكوين كلمة عشوائية من 5 حروف
+    for (let i = 0; i < 5; i++) {
+        const randomIndex = Math.floor(Math.random() * letters.length);
+        randomWord += letters[randomIndex];
+    }
+    
+    currentSecretWord = randomWord;
+    // حساب التشفير الصحيح للكلمة العشوائية خلف الكواليس
+    correctTranslation = convert(randomWord, true);
+    
+    // عرض الكلمة للمستخدم
+    document.getElementById("target-word").innerText = randomWord;
+}
+
+function verifyAuth() {
+    const userAns = document.getElementById("auth-input").value.trim();
+    const errorElement = document.getElementById("error-msg");
+    
+    if (userAns === correctTranslation) {
+        // إخفاء شاشة القفل وإظهار الأداة
+        document.getElementById("lock-screen").style.display = "none";
+        document.getElementById("main-tool").style.display = "block";
+    } else {
+        // إظهار رسالة خطأ وتوليد كلمة جديدة كعقوبة وتأمين إضافي
+        errorElement.style.display = "block";
+        document.getElementById("auth-input").value = "";
+        generateSecureQuiz(); 
+    }
+}
+
+// تشغيل نظام الأمان فور فتح الصفحة
+window.onload = function() {
+    generateSecureQuiz();
+    
+    // تفعيل الدخول عبر زر Enter في الكيبورد لتسهيل الاستخدام
+    document.getElementById("auth-input").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            verifyAuth();
+        }
+    });
+};
+
+// عمليات الأداة الرئيسية
 function process(isEncrypt) {
     const inputVal = document.getElementById("input").value;
     document.getElementById("output").value = convert(inputVal, isEncrypt);
